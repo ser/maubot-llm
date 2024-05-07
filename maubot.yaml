@@ -1,0 +1,10 @@
+maubot: 0.1.0
+id: net.brokensandals.llm
+version: 1.0.0
+license: MIT
+modules:
+  - maubot_llm
+main_class: LlmBot
+config: true
+extra_files:
+  - base-config.yaml
