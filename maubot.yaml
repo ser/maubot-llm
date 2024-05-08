@@ -8,3 +8,5 @@ main_class: LlmBot
 config: true
 extra_files:
   - base-config.yaml
+database: true
+database_type: asyncpg
