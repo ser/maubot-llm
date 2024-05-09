@@ -13,7 +13,6 @@ class TestDb(unittest.IsolatedAsyncioTestCase):
         db = Database.create(DB_URI, upgrade_table=upgrade_table)
         await db.start()
         try:
-            print(f"{DB_PATH.exists()}")
             self.assertEqual(None, await fetch_room(db, "a"))
             
             room = Room()
