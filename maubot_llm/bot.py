@@ -1,7 +1,7 @@
 from maubot import Plugin
 from mautrix.util.config import BaseProxyConfig, ConfigUpdateHelper
 from maubot import Plugin, MessageEvent
-from maubot.handlers import event
+from maubot.handlers import command, event
 from mautrix.types import EventType, MessageEvent
 from typing import Type
 from maubot_llm.backends import Backend, BasicOpenAIBackend
@@ -45,7 +45,18 @@ class LlmBot(Plugin):
         if cfg["type"] == "basic_openai":
             return BasicOpenAIBackend(cfg)
         raise ValueError(f"unknown backend type {cfg['type']}")
-        
+    
+    @command.new(name="llm", require_subcommand=True)
+    async def llm_command(self, evt: MessageEvent) -> None:
+        pass
+
+    @llm_command.subcommand(help="Forget all context and treat subsequent messages as part of a new chat with the LLM.")
+    async def clear(self, evt: MessageEvent) -> None:
+        if not self.is_allowed(evt.sender):
+            self.log.warn(f"stranger danger: sender={evt.sender}")
+            return
+        await db.clear_context(self.database, evt.room_id)
+        await evt.react("✅")
 
     @event.on(EventType.ROOM_MESSAGE)
     async def handle_msg(self, evt: MessageEvent) -> None:
