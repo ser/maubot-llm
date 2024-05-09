@@ -93,6 +93,36 @@ class LlmBot(Plugin):
         room.backend = key
         await db.upsert_room(self.database, room)
         await evt.react("✅")
+    
+    @llm_command.subcommand(help="Switch to a different model for this room. Use '-' to switch to the backend's default model.")
+    @command.argument("model")
+    async def model(self, evt: MessageEvent, model: str) -> None:
+        if not self.is_allowed(evt.sender):
+            self.log.warn(f"stranger danger: sender={evt.sender}")
+            return
+        # TODO validate model when the backend supports it
+        room = await self.get_room(evt.room_id)
+        if model == "-":
+            room.model = None
+        else:
+            room.model = model
+        await db.upsert_room(self.database, room)
+        await evt.react("✅")
+    
+    @llm_command.subcommand(help="Switch to a different system prompt for this room. Use '-' to switch to the backend's default system prompt.")
+    @command.argument("prompt", pass_raw=True)
+    async def system(self, evt: MessageEvent, prompt: str) -> None:
+        if not self.is_allowed(evt.sender):
+            self.log.warn(f"stranger danger: sender={evt.sender}")
+            return
+        # TODO validate model when the backend supports it
+        room = await self.get_room(evt.room_id)
+        if prompt == "-":
+            room.system_prompt = None
+        else:
+            room.system_prompt = prompt
+        await db.upsert_room(self.database, room)
+        await evt.react("✅")
 
     @llm_command.subcommand(help="Forget all context and treat subsequent messages as part of a new chat with the LLM.")
     async def clear(self, evt: MessageEvent) -> None:
