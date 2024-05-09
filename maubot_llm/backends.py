@@ -18,7 +18,7 @@ class Backend:
         self.default_model = cfg.get("default_model")
         self.default_system_prompt = cfg.get("default_system_prompt")
 
-    async def create_chat_completion(self, http: ClientSession,  context: List[dict], system: Optional[str], model: Optional[str]) -> ChatCompletion:
+    async def create_chat_completion(self, http: ClientSession,  context: List[dict], system: Optional[str] = None, model: Optional[str] = None) -> ChatCompletion:
         raise NotImplementedError()
 
 
@@ -28,7 +28,7 @@ class BasicOpenAIBackend(Backend):
         self.base_url = cfg["base_url"]
         self.authorization = cfg["authorization"]
     
-    async def create_chat_completion(self, http: ClientSession,  context: List[dict], system: Optional[str], model: Optional[str]) -> ChatCompletion:
+    async def create_chat_completion(self, http: ClientSession,  context: List[dict], system: Optional[str] = None, model: Optional[str] = None) -> ChatCompletion:
         url = f"{self.base_url}/v1/chat/completions"
         reqbody = {"messages": context}
         if system is not None:
@@ -47,3 +47,11 @@ class BasicOpenAIBackend(Backend):
                 finish_reason=choice["finish_reason"],
                 model=choice.get("model", None)
             )
+
+
+class OpenAIBackend(BasicOpenAIBackend):
+    def __init__(self, cfg) -> None:
+        cfg["authorization"] = f"Bearer {cfg['api_key']}"
+        if cfg.get("base_url") is None:
+            cfg["base_url"] = "https://api.openai.com"
+        super().__init__(cfg)
