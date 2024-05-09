@@ -77,6 +77,22 @@ class LlmBot(Plugin):
         items.append(f"- Context Message Count: {len(context)}")
         msg = "\n".join(items)
         await evt.reply(msg)
+    
+    @llm_command.subcommand(help="Switch to a different backend for this room.")
+    @command.argument("key")
+    async def backend(self, evt: MessageEvent, key: str) -> None:
+        if not self.is_allowed(evt.sender):
+            self.log.warn(f"stranger danger: sender={evt.sender}")
+            return
+        if key not in self.config["backends"].keys():
+            all_backends = ", ".join(self.config["backends"].keys())
+            msg = f"Invalid backend. Available backends: {all_backends}"
+            await evt.reply(msg)
+            return
+        room = await self.get_room(evt.room_id)
+        room.backend = key
+        await db.upsert_room(self.database, room)
+        await evt.react("✅")
 
     @llm_command.subcommand(help="Forget all context and treat subsequent messages as part of a new chat with the LLM.")
     async def clear(self, evt: MessageEvent) -> None:
