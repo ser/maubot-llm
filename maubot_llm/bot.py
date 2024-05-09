@@ -42,6 +42,7 @@ class LlmBot(Plugin):
         if key is None:
             key = self.config["default_backend"]
         cfg = self.config["backends"][key]
+        cfg["key"] = key
         if cfg["type"] == "basic_openai":
             return BasicOpenAIBackend(cfg)
         raise ValueError(f"unknown backend type {cfg['type']}")
@@ -49,6 +50,33 @@ class LlmBot(Plugin):
     @command.new(name="llm", require_subcommand=True)
     async def llm_command(self, evt: MessageEvent) -> None:
         pass
+
+    @llm_command.subcommand(help="Display configuration used for current room.")
+    async def info(self, evt: MessageEvent) -> None:
+        if not self.is_allowed(evt.sender):
+            self.log.warn(f"stranger danger: sender={evt.sender}")
+            return
+        room = await self.get_room(evt.room_id)
+        context = await db.fetch_context(self.database, room.room_id)
+        backend = self.get_backend(room)
+        all_backends = ", ".join(self.config["backends"].keys())
+        items = []
+        items.append(f"- Backend: {backend.cfg['key']} (available: {all_backends})")
+        if room.model:
+            items.append(f"- Model: {room.model}")
+        elif backend.default_model:
+            items.append(f"- Model (backend default): {backend.default_model}")
+        else:
+            items.append("- Model not specified")
+        if room.system_prompt:
+            items.append(f"- System Prompt: {room.system_prompt}")
+        elif backend.default_system_prompt:
+            items.append(f"- System Prompt (backend default): {backend.default_system_prompt}")
+        else:
+            items.append("- System Prompt not specified")
+        items.append(f"- Context Message Count: {len(context)}")
+        msg = "\n".join(items)
+        await evt.reply(msg)
 
     @llm_command.subcommand(help="Forget all context and treat subsequent messages as part of a new chat with the LLM.")
     async def clear(self, evt: MessageEvent) -> None:
