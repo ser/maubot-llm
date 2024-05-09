@@ -1,3 +1,10 @@
 # Set allowlist to `false` to allow anyone; otherwise add entries such as "@user:example.com"
 allowlist: []
-backends: []
+default_backend: "local"
+backends:
+  local:
+    type: basic_openai
+    base_url: "http://localhost:1234"
+    authorization: null
+    default_model: null
+    default_system_prompt: "You are helpful digital assistant."

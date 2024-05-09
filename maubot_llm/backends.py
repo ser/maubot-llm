@@ -13,14 +13,20 @@ class ChatCompletion:
 
 
 class Backend:
+    def __init__(self, cfg: dict) -> None:
+        self.cfg = cfg
+        self.default_model = cfg.get("default_model")
+        self.default_system_prompt = cfg.get("default_system_prompt")
+
     async def create_chat_completion(self, http: ClientSession,  context: List[dict], system: Optional[str], model: Optional[str]) -> ChatCompletion:
         raise NotImplementedError()
 
 
 class BasicOpenAIBackend(Backend):
-    def __init__(self, *, base_url: str, authorization: Optional[str]) -> None:
-        self.base_url = base_url
-        self.authorization = authorization
+    def __init__(self, cfg) -> None:
+        super().__init__(cfg)
+        self.base_url = cfg["base_url"]
+        self.authorization = cfg["authorization"]
     
     async def create_chat_completion(self, http: ClientSession,  context: List[dict], system: Optional[str], model: Optional[str]) -> ChatCompletion:
         url = f"{self.base_url}/v1/chat/completions"

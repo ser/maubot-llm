@@ -14,7 +14,7 @@ class TestBackends(unittest.IsolatedAsyncioTestCase):
         if BASIC_OPENAI_BASE_URL is None:
             print("SKIPPING because TEST_BASIC_OPENAI_BASE_URL not configured")
             return
-        backend = BasicOpenAIBackend(base_url=BASIC_OPENAI_BASE_URL, authorization=BASIC_OPENAI_AUTHORIZATION)
+        backend = BasicOpenAIBackend(dict(base_url=BASIC_OPENAI_BASE_URL, authorization=BASIC_OPENAI_AUTHORIZATION))
         async with aiohttp.ClientSession() as http:
             context = [{"role": "user", "content": "Please say the word 'hello' in lowercase and nothing else."}]
             system = "You are a helpful digital assistant."
