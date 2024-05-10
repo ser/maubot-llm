@@ -144,13 +144,19 @@ class LlmBot(Plugin):
         room = await self.get_room(evt.room_id)
         await db.append_context(self.database, room.room_id, "user", evt.content.body)
         await evt.mark_read()
-        backend = self.get_backend(room)
-        model = room.model or backend.default_model
-        system = room.system_prompt or backend.default_system_prompt
-        context = await db.fetch_context(self.database, room.room_id)
-        completion = await backend.create_chat_completion(self.http, context=context, system=system, model=model)
-        await db.append_context(self.database, room.room_id, completion.message["role"], completion.message["content"])
-        await evt.respond(completion.message["content"])
+        # TODO: refresh the typing indicator if generation takes longer
+        # (or, alternatively, set a timeout for generation)
+        await self.client.set_typing(evt.room_id, 30000)
+        try:
+            backend = self.get_backend(room)
+            model = room.model or backend.default_model
+            system = room.system_prompt or backend.default_system_prompt
+            context = await db.fetch_context(self.database, room.room_id)
+            completion = await backend.create_chat_completion(self.http, context=context, system=system, model=model)
+            await db.append_context(self.database, room.room_id, completion.message["role"], completion.message["content"])
+            await evt.respond(completion.message["content"])
+        finally:
+            await self.client.set_typing(evt.room_id, 0)
     
     @classmethod
     def get_db_upgrade_table(cls) -> UpgradeTable | None:
