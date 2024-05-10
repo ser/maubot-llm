@@ -4,7 +4,7 @@ from maubot import Plugin, MessageEvent
 from maubot.handlers import command, event
 from mautrix.types import EventType, MessageEvent
 from typing import Type
-from maubot_llm.backends import Backend, BasicOpenAIBackend, OpenAIBackend
+from maubot_llm.backends import Backend, BasicOpenAIBackend, OpenAIBackend, AnthropicBackend
 from maubot_llm import db
 from mautrix.util.async_db import UpgradeTable
 
@@ -47,6 +47,8 @@ class LlmBot(Plugin):
             return BasicOpenAIBackend(cfg)
         if cfg["type"] == "openai":
             return OpenAIBackend(cfg)
+        if cfg["type"] == "anthropic":
+            return AnthropicBackend(cfg)
         raise ValueError(f"unknown backend type {cfg['type']}")
     
     @command.new(name="llm", require_subcommand=True)

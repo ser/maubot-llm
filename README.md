@@ -5,6 +5,7 @@ Use at your own risk, and expect problems.
 
 The LLM must be supplied by an OpenAI-compatible server.
 For example, if you run [LM Studio](https://lmstudio.ai/), this plugin can connect to its server.
+Anthropic is also supported.
 
 You can and probably should configure it to only respond to messages from specific users.
 
