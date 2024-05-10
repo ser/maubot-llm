@@ -26,6 +26,9 @@ class TestBackends(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(completion.message["role"], "assistant")
             self.assertRegex(completion.message["content"], r".*hello.*")
             self.assertEqual(completion.finish_reason, "stop")
+
+            models = await backend.fetch_models(http)
+            self.assertGreater(len(models), 0)
     
     async def test_openai(self) -> None:
         if OPENAI_API_KEY is None:
@@ -38,6 +41,9 @@ class TestBackends(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(completion.message["role"], "assistant")
             self.assertRegex(completion.message["content"], r".*hello.*")
             self.assertEqual(completion.finish_reason, "stop")
+
+            models = await backend.fetch_models(http)
+            self.assertGreater(len(models), 0)
     
     async def test_anthropic(self) -> None:
         if ANTHROPIC_API_KEY is None:

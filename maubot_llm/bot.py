@@ -64,6 +64,13 @@ class LlmBot(Plugin):
         context = await db.fetch_context(self.database, room.room_id)
         backend = self.get_backend(room)
         all_backends = ", ".join(self.config["backends"].keys())
+
+        all_models = "unknown"
+        try:
+            all_models = ", ".join(await backend.fetch_models(self.http))
+        except:
+            pass
+
         items = []
         items.append(f"- Backend: {backend.cfg['key']} (available: {all_backends})")
         if room.model:
@@ -72,6 +79,7 @@ class LlmBot(Plugin):
             items.append(f"- Model (backend default): {backend.default_model}")
         else:
             items.append("- Model not specified")
+        items[-1] += f" (available: {all_models})"
         if room.system_prompt:
             items.append(f"- System Prompt: {room.system_prompt}")
         elif backend.default_system_prompt:

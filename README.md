@@ -26,7 +26,7 @@ You can also use different models and system prompts in different rooms.
 
 The following commands are available for managing the bot in a room:
 
-- To see the current backend, model, and system prompt, use `!llm info`.
+- To see the current backend, model, and system prompt, along with a list of available models (note: not supported for Anthropic), use `!llm info`.
 - To change to a different backend, use `!llm backend KEY`, where KEY is the key from the `backends` map in the configuration.
 - To use a specific model, use `!llm model NAME`. Currently the name is just passed directly as the `model` field in the request json when invoking the server.
 - To change the system prompt, use `!llm system WRITE YOUR PROMPT HERE`.

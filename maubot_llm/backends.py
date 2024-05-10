@@ -20,6 +20,9 @@ class Backend:
 
     async def create_chat_completion(self, http: ClientSession,  context: List[dict], system: Optional[str] = None, model: Optional[str] = None) -> ChatCompletion:
         raise NotImplementedError()
+    
+    async def fetch_models(self, http: ClientSession) -> List[str]:
+        raise NotImplementedError()
 
 
 class BasicOpenAIBackend(Backend):
@@ -47,6 +50,16 @@ class BasicOpenAIBackend(Backend):
                 finish_reason=choice["finish_reason"],
                 model=choice.get("model", None)
             )
+    
+    async def fetch_models(self, http: ClientSession) -> List[str]:
+        url = f"{self.base_url}/v1/models"
+        headers = {}
+        if self.authorization is not None:
+            headers["Authorization"] = self.authorization
+        async with http.get(url, headers=headers) as resp:
+            # TODO error handling
+            respbody = await resp.json()
+            return [m["id"] for m in respbody["data"]]
 
 
 class OpenAIBackend(BasicOpenAIBackend):
