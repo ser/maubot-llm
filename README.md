@@ -3,9 +3,7 @@ This is a very basic [maubot](https://github.com/maubot/maubot) plugin for invok
 It's very new and very rough.
 Use at your own risk, and expect problems.
 
-The LLM must be supplied by an OpenAI-compatible server.
-For example, if you run [LM Studio](https://lmstudio.ai/), this plugin can connect to its server.
-Anthropic is also supported.
+The LLM must be supplied by an OpenWebUI server API: https://openwebui.com/
 
 You can and probably should configure it to only respond to messages from specific users.
 
@@ -18,17 +16,21 @@ You can and probably should configure it to only respond to messages from specif
 
 # Usage
 
-Once it's added to a room, every message from any user on the allowlist will cause the bot to invoke the LLM and respond with its output.
+Once it's added to a room, message from any user on the allowlist starting with !(check your config)
+will cause the bot to invoke the LLM and respond with its output.
 
-You can configure multiple backends.
-One of them should be designated as the default, but the bot can also use a different backend in each room.
-You can also use different models and system prompts in different rooms.
+You can configure multiple back-ends.
+One of them should be designated as the default, but the bot can also use a different
+back-end in each room. You can also use different models and system prompts in different rooms.
 
 The following commands are available for managing the bot in a room:
 
-- To see the current backend, model, and system prompt, along with a list of available models (note: not supported for Anthropic), use `!llm info`.
-- To change to a different backend, use `!llm backend KEY`, where KEY is the key from the `backends` map in the configuration.
+- To see the current back-end, model, and system prompt, along with a list of available models (note: not supported for Anthropic), use `!llm info`.
+- To change to a different back-end, use `!llm backend KEY`, where KEY is the key from the `backends` map in the configuration.
 - To use a specific model, use `!llm model NAME`. Currently the name is just passed directly as the `model` field in the request json when invoking the server.
 - To change the system prompt, use `!llm system WRITE YOUR PROMPT HERE`.
 - To clear the context (forget all past messages in the room), use `!llm clear`.
 
+# Copyrights
+
+The work is substantially based on code written by Jacob Williams and taken from https://github.com/brokensandals/maubot-llm/

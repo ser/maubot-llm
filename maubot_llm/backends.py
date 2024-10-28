@@ -1,5 +1,6 @@
 from typing import List, Optional
 from aiohttp import ClientSession
+import logging as log
 
 
 class ChatCompletion:
@@ -29,10 +30,10 @@ class BasicOpenAIBackend(Backend):
     def __init__(self, cfg) -> None:
         super().__init__(cfg)
         self.base_url = cfg["base_url"]
-        self.authorization = cfg["authorization"]
+        self.authorization = f'Bearer {cfg["authorization"]}'
     
     async def create_chat_completion(self, http: ClientSession,  context: List[dict], system: Optional[str] = None, model: Optional[str] = None) -> ChatCompletion:
-        url = f"{self.base_url}/v1/chat/completions"
+        url = f"{self.base_url}/api/chat/completions"
         reqbody = {"messages": context}
         if system is not None:
             reqbody["messages"].insert(0, {"role": "system", "content": system})
@@ -44,6 +45,7 @@ class BasicOpenAIBackend(Backend):
         async with http.post(url, headers=headers, json=reqbody) as resp:
             # TODO error handling
             respbody = await resp.json()
+            log.debug(f'{respbody}')
             choice = respbody["choices"][0]
             return ChatCompletion(
                 message=choice["message"],
@@ -52,7 +54,7 @@ class BasicOpenAIBackend(Backend):
             )
     
     async def fetch_models(self, http: ClientSession) -> List[str]:
-        url = f"{self.base_url}/v1/models"
+        url = f"{self.base_url}/api/models"
         headers = {}
         if self.authorization is not None:
             headers["Authorization"] = self.authorization
@@ -69,31 +71,3 @@ class OpenAIBackend(BasicOpenAIBackend):
             cfg["base_url"] = "https://api.openai.com"
         super().__init__(cfg)
 
-
-class AnthropicBackend(Backend):
-    def __init__(self, cfg) -> None:
-        super().__init__(cfg)
-        self.base_url = cfg.get("base_url", "https://api.anthropic.com")
-        self.api_key = cfg["api_key"]
-        self.max_tokens = cfg["max_tokens"]
-
-    async def create_chat_completion(self, http: ClientSession,  context: List[dict], system: Optional[str] = None, model: Optional[str] = None) -> ChatCompletion:
-        url = f"{self.base_url}/v1/messages"
-        reqbody = {"messages": context}
-        if system is not None:
-            reqbody["system"] = system
-        if model is not None:
-            reqbody["model"] = model
-        reqbody["max_tokens"] = self.max_tokens
-        headers = {}
-        headers["anthropic-version"] = "2023-06-01"
-        headers["x-api-key"] = self.api_key
-        async with http.post(url, headers=headers, json=reqbody) as resp:
-            # TODO error handling
-            respbody = await resp.json()
-            text = "\n\n".join(c["text"] for c in respbody["content"])
-            return ChatCompletion(
-                message=dict(role="assistant", content=text),
-                finish_reason=respbody["stop_reason"],
-                model=respbody["model"]
-            )

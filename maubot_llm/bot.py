@@ -1,10 +1,9 @@
-from maubot import Plugin
 from mautrix.util.config import BaseProxyConfig, ConfigUpdateHelper
 from maubot import Plugin, MessageEvent
 from maubot.handlers import command, event
 from mautrix.types import EventType, MessageEvent
 from typing import Type
-from maubot_llm.backends import Backend, BasicOpenAIBackend, OpenAIBackend, AnthropicBackend
+from maubot_llm.backends import Backend, BasicOpenAIBackend, OpenAIBackend
 from maubot_llm import db
 from mautrix.util.async_db import UpgradeTable
 
@@ -21,7 +20,7 @@ class LlmBot(Plugin):
         self.config.load_and_update()
     
     def is_allowed(self, sender: str) -> bool:
-        if self.config["allowlist"] == False:
+        if not self.config["allowlist"]:
             return True
         return sender in self.config["allowlist"]
 
@@ -47,8 +46,6 @@ class LlmBot(Plugin):
             return BasicOpenAIBackend(cfg)
         if cfg["type"] == "openai":
             return OpenAIBackend(cfg)
-        if cfg["type"] == "anthropic":
-            return AnthropicBackend(cfg)
         raise ValueError(f"unknown backend type {cfg['type']}")
     
     @command.new(name="llm", require_subcommand=True)
@@ -144,15 +141,15 @@ class LlmBot(Plugin):
         await db.clear_context(self.database, evt.room_id)
         await evt.react("✅")
 
-    @event.on(EventType.ROOM_MESSAGE)
-    async def handle_msg(self, evt: MessageEvent) -> None:
+    #@event.on(EventType.ROOM_MESSAGE)
+    @command.new(name="llama")
+    @command.argument("content", pass_raw=True)
+    async def handle_msg(self, evt: MessageEvent, content: str) -> None:
         if not self.is_allowed(evt.sender):
             self.log.warn(f"stranger danger: sender={evt.sender}")
             return
-        if evt.content.body.startswith("!"):
-            return
         room = await self.get_room(evt.room_id)
-        await db.append_context(self.database, room.room_id, "user", evt.content.body)
+        await db.append_context(self.database, room.room_id, "user", content)
         await evt.mark_read()
         # TODO: refresh the typing indicator if generation takes longer
         # (or, alternatively, set a timeout for generation)
